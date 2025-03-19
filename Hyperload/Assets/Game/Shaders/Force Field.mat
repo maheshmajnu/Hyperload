@@ -8,7 +8,8 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Force Field
-  m_Shader: {fileID: -6465566751694194690, guid: e5afc7525d3bbad429145716aee3f8e6, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: e5afc7525d3bbad429145716aee3f8e6,
+    type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -25,7 +26,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _Force_field_tex:
-        m_Texture: {fileID: 2800000, guid: 8ad278a9e24aeee4cb274f7b35425aca, type: 3}
+        m_Texture: {fileID: 2800000, guid: 38963f557c03d114dbebed3800e7aac9, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -45,14 +46,13 @@ Material:
     - _Edge_power: 2.95
     - _Line_scale: 46.41
     - _Line_speed: 9.7
-    - _Lines_strength: 5.7
+    - _Lines_strength: 6.78
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
     - _Edge_color: {r: 0, g: 1.9369212, b: 2, a: 0.99607843}
-    - _Main_color: {r: 0, g: 0.992157, b: 1, a: 1}
+    - _Main_color: {r: 0, g: 1.984314, b: 2, a: 1}
   m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!114 &4746001801269565176
 MonoBehaviour:
   m_ObjectHideFlags: 11
