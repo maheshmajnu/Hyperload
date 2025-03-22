@@ -1,56 +1,95 @@
 using UnityEngine;
+using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
-using UnityEditor;
 
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class MeshCombiner : MonoBehaviour
 {
-    public string savePath = "Assets/CombinedMeshes"; // Path where mesh will be saved
+    public bool deleteOriginals = false; // Option to delete original meshes
 
     [ContextMenu("Combine Meshes")]
     public void CombineMeshes()
     {
-        MeshFilter[] meshFilters = GetComponentsInChildren<MeshFilter>();
+        MeshFilter[] meshFilters = GetComponentsInChildren<MeshFilter>(); // Get all child MeshFilters
         List<CombineInstance> combineInstances = new List<CombineInstance>();
 
-        foreach (var mf in meshFilters)
+        if (meshFilters.Length == 0)
         {
-            if (mf.sharedMesh == null) continue;
+            Debug.LogWarning("No meshes found to combine!");
+            return;
+        }
 
-            CombineInstance ci = new CombineInstance();
-            ci.mesh = mf.sharedMesh;
-            ci.transform = mf.transform.localToWorldMatrix;
-            combineInstances.Add(ci);
+        Material material = null; // To store the first material
+
+        foreach (MeshFilter mf in meshFilters)
+        {
+            if (mf.sharedMesh != null && mf.gameObject != gameObject) // Ignore parent
+            {
+                CombineInstance ci = new CombineInstance();
+                ci.mesh = mf.sharedMesh;
+                ci.transform = mf.transform.localToWorldMatrix;
+                combineInstances.Add(ci);
+
+                if (material == null) // Assign the first available material
+                    material = mf.GetComponent<MeshRenderer>().sharedMaterial;
+            }
         }
 
         if (combineInstances.Count == 0)
         {
-            Debug.LogError("No meshes found under the selected object!");
+            Debug.LogWarning("No valid meshes to combine!");
             return;
         }
 
+        // Create combined mesh
         Mesh combinedMesh = new Mesh();
         combinedMesh.CombineMeshes(combineInstances.ToArray(), true, true);
+        combinedMesh.name = "Combined_Mesh";
 
-        // Assign the combined mesh to the parent
-        MeshFilter mfCombined = gameObject.AddComponent<MeshFilter>();
-        MeshRenderer mrCombined = gameObject.AddComponent<MeshRenderer>();
-        mfCombined.mesh = combinedMesh;
+        // Assign mesh to this GameObject
+        MeshFilter meshFilter = gameObject.GetComponent<MeshFilter>();
+        if (meshFilter == null) meshFilter = gameObject.AddComponent<MeshFilter>();
+        meshFilter.mesh = combinedMesh;
 
-        // Save the mesh
-        SaveMesh(combinedMesh, "CombinedMesh");
+        MeshRenderer meshRenderer = gameObject.GetComponent<MeshRenderer>();
+        if (meshRenderer == null) meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        meshRenderer.sharedMaterial = material;
 
-        Debug.Log("Combined Mesh created and assigned!");
+        // Delete originals if the option is checked
+        if (deleteOriginals)
+        {
+            foreach (MeshFilter mf in meshFilters)
+            {
+                if (mf.gameObject != gameObject)
+                    DestroyImmediate(mf.gameObject);
+            }
+        }
+
+        Debug.Log("Meshes combined successfully!");
     }
 
-    private void SaveMesh(Mesh mesh, string name)
+    [ContextMenu("Save Mesh")]
+    public void SaveMesh()
     {
-        if (!Directory.Exists(savePath))
-            Directory.CreateDirectory(savePath);
+        MeshFilter mf = GetComponent<MeshFilter>();
+        if (mf == null || mf.sharedMesh == null)
+        {
+            Debug.LogWarning("No combined mesh to save!");
+            return;
+        }
 
-        string fullPath = Path.Combine(savePath, name + ".asset");
-        AssetDatabase.CreateAsset(mesh, fullPath);
+        string path = EditorUtility.SaveFilePanelInProject("Save Combined Mesh", mf.sharedMesh.name, "asset", "Select save location");
+        if (string.IsNullOrEmpty(path))
+        {
+            Debug.LogWarning("Save operation canceled!");
+            return;
+        }
+
+        Mesh newMesh = Instantiate(mf.sharedMesh); // Create a copy of the mesh before saving
+        AssetDatabase.CreateAsset(newMesh, path);
         AssetDatabase.SaveAssets();
-        Debug.Log("Mesh saved at: " + fullPath);
+
+        Debug.Log("Mesh saved at: " + path);
     }
 }
