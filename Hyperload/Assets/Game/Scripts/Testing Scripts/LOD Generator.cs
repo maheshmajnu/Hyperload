@@ -1,116 +1,69 @@
 using UnityEngine;
-using UnityEditor;
-using UnityEditor.SceneManagement;
 using System.Collections.Generic;
-using System.IO;
 
-[RequireComponent(typeof(LODGroup))]
-public class AutomaticLODGenerator : MonoBehaviour
+public class AutoLODSetup : MonoBehaviour
 {
-    [Header("LOD Settings")]
-    [Range(2, 4)] public int lodLevels = 3; // Number of LOD levels
-    [Range(0.2f, 0.8f)] public float reductionFactor = 0.5f; // How much each LOD is simplified
-    public float[] lodThresholds = { 0.6f, 0.3f, 0.1f }; // LOD distances
-
-    [Header("Save Settings")]
-    public string savePath = "Assets/GeneratedLODs/"; // Where to save generated meshes
-    public bool overwriteExisting = true; // Overwrite existing LOD meshes
-
-    public enum SimplificationMethod { UnityOptimize, ThirdParty }
-    [Header("Simplification Options")]
-    public SimplificationMethod simplificationMethod = SimplificationMethod.UnityOptimize;
-
-    public void GenerateLODs()
+    [ContextMenu("Setup LODs Automatically")]
+    void SetupLODs()
     {
+        // Ensure an LODGroup component exists
         LODGroup lodGroup = GetComponent<LODGroup>();
-
-        if (!lodGroup)
+        if (lodGroup == null)
         {
-            Debug.LogError("LODGroup component not found! Adding one now...");
             lodGroup = gameObject.AddComponent<LODGroup>();
         }
 
-        List<LOD> lods = new List<LOD>();
-        MeshFilter[] meshFilters = GetComponentsInChildren<MeshFilter>();
-
-        if (meshFilters.Length == 0)
+        // Find all child objects with a MeshRenderer or SkinnedMeshRenderer
+        List<Transform> lodObjects = new List<Transform>();
+        foreach (Transform child in transform)
         {
-            Debug.LogError("No meshes found in children!");
+            if (child.GetComponent<MeshRenderer>() || child.GetComponent<SkinnedMeshRenderer>())
+            {
+                lodObjects.Add(child);
+            }
+        }
+
+        // If no valid LOD objects found, exit
+        if (lodObjects.Count == 0)
+        {
+            Debug.LogWarning("No valid LOD objects found under " + gameObject.name);
             return;
         }
 
-        if (!Directory.Exists(savePath))
-            Directory.CreateDirectory(savePath);
+        // Sort objects based on polycount (highest polycount first)
+        lodObjects.Sort((a, b) => GetPolyCount(b).CompareTo(GetPolyCount(a)));
 
-        for (int i = 0; i < lodLevels; i++)
+        // Rename objects properly to LOD0, LOD1, LOD2...
+        for (int i = 0; i < lodObjects.Count; i++)
         {
-            float quality = Mathf.Pow(reductionFactor, i); // Reduce polycount per LOD
-            List<Renderer> renderers = new List<Renderer>();
-
-            foreach (MeshFilter mf in meshFilters)
-            {
-                Mesh newMesh = SimplifyMesh(mf.sharedMesh, quality, i);
-
-                if (newMesh != null)
-                {
-                    GameObject lodObject = Instantiate(mf.gameObject, mf.transform.position, mf.transform.rotation, transform);
-                    lodObject.name = mf.gameObject.name + "_LOD" + i;
-                    MeshFilter newMeshFilter = lodObject.GetComponent<MeshFilter>();
-                    newMeshFilter.sharedMesh = newMesh;
-
-                    Renderer rend = lodObject.GetComponent<Renderer>();
-                    if (rend)
-                    {
-                        renderers.Add(rend);
-                    }
-                }
-            }
-
-            lods.Add(new LOD(lodThresholds[i], renderers.ToArray()));
+            lodObjects[i].name = "LOD" + i;
         }
 
-        lodGroup.SetLODs(lods.ToArray());
+        // Create LODs dynamically
+        LOD[] lods = new LOD[lodObjects.Count];
+        for (int i = 0; i < lodObjects.Count; i++)
+        {
+            Renderer[] renderers = lodObjects[i].GetComponentsInChildren<Renderer>();
+            float transition = Mathf.Clamp01(1.0f - (i * 0.3f)); // Adjust transition values
+            lods[i] = new LOD(transition, renderers);
+        }
+
+        // Assign LODs to LODGroup
+        lodGroup.SetLODs(lods);
         lodGroup.RecalculateBounds();
 
-        Debug.Log("LOD Generation Complete!");
+        Debug.Log("LOD Group successfully set up for " + gameObject.name);
     }
 
-    private Mesh SimplifyMesh(Mesh originalMesh, float quality, int lodLevel)
+    // Function to get polygon count of a mesh
+    int GetPolyCount(Transform obj)
     {
-        if (originalMesh == null)
-        {
-            Debug.LogWarning("Mesh is null, skipping simplification.");
-            return null;
-        }
+        MeshFilter meshFilter = obj.GetComponent<MeshFilter>();
+        SkinnedMeshRenderer skinnedMesh = obj.GetComponent<SkinnedMeshRenderer>();
 
-        Mesh newMesh = Instantiate(originalMesh);
+        if (meshFilter && meshFilter.sharedMesh) return meshFilter.sharedMesh.triangles.Length / 3;
+        if (skinnedMesh && skinnedMesh.sharedMesh) return skinnedMesh.sharedMesh.triangles.Length / 3;
 
-        if (simplificationMethod == SimplificationMethod.UnityOptimize)
-        {
-            UnityEditor.MeshUtility.Optimize(newMesh);
-        }
-        else
-        {
-            Debug.LogWarning("Third-party simplification required!");
-            // Here you can integrate Simplygon, InstaLOD, or another mesh reduction tool.
-        }
-
-        SaveMeshToDisk(newMesh, originalMesh.name + "_LOD" + lodLevel);
-        return newMesh;
-    }
-
-    private void SaveMeshToDisk(Mesh mesh, string fileName)
-    {
-        string path = savePath + fileName + ".asset";
-
-        if (File.Exists(path) && !overwriteExisting)
-        {
-            Debug.LogWarning($"Mesh {fileName} already exists, skipping save.");
-            return;
-        }
-
-        AssetDatabase.CreateAsset(mesh, path);
-        AssetDatabase.SaveAssets();
-        Debug.Log($"Saved {fileName} to {path}");
+        return 0;
     }
 }
