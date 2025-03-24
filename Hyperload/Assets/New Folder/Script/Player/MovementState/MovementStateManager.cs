@@ -43,6 +43,9 @@ public class MovementStateManager : MonoBehaviour
         anim = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
         SwiitchState(Idle);
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     // Update is called once per frame
