@@ -11,6 +11,7 @@ public class AimStateManager : MonoBehaviour
 
 
     [SerializeField] float mouseScence = 1;
+    public bool invertY = false;
     [SerializeField] Transform camFollowPos;
     float xAxis, yAxis;
 
@@ -51,7 +52,9 @@ public class AimStateManager : MonoBehaviour
     void Update()
     {
         xAxis += Input.GetAxisRaw("Mouse X") * mouseScence;
-        yAxis += Input.GetAxisRaw("Mouse Y") * mouseScence;
+        float mouseY = Input.GetAxisRaw("Mouse Y");
+        yAxis += (invertY ? -mouseY : mouseY) * mouseScence;
+
         yAxis = Mathf.Clamp(yAxis, -80, 80);
 
         vCam.m_Lens.FieldOfView = Mathf.Lerp(vCam.m_Lens.FieldOfView, currentFov, fovSmoothSpeed * Time.deltaTime);

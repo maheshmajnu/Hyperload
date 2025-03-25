@@ -21,6 +21,12 @@ public class WeaponBloom : MonoBehaviour
         aiming = GetComponentInParent<AimStateManager>();
     }
 
+    public float GetCurrentBloom()
+    {
+        return currentBloom;
+    }
+
+
     public Vector3 BloomAngle(Transform barrelPos)
     {
         if (movement.currentState == movement.Idle) currentBloom = defaultBloomAngle;

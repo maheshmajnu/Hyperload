@@ -69,8 +69,8 @@ public class MovementStateManager : MonoBehaviour
 
     void GetDirectionAndMove()
     {
-        hzInput = Input.GetAxis("Horizontal");
-        vrInput = Input.GetAxis("Vertical");
+        hzInput = Input.GetAxisRaw("Horizontal");
+        vrInput = Input.GetAxisRaw("Vertical");
         Vector3 airDir = Vector3.zero;
         if (!IsGrounded()) airDir = transform.forward * vrInput + transform.right * hzInput;
         else dir = transform.forward * vrInput + transform.right * hzInput;
