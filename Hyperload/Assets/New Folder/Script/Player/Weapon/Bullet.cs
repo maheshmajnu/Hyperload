@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 
 public class Bullet : MonoBehaviour
@@ -19,18 +20,13 @@ public class Bullet : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         Debug.Log("Bullet hit: " + collision.gameObject.name);
-        if (collision.gameObject.GetComponentInParent<EnemyHealth>())
+        if (collision.gameObject.GetComponentInParent<PlayerHealth>())
         {
-            EnemyHealth enemyHealth = collision.gameObject.GetComponentInParent<EnemyHealth>();
-            enemyHealth.TakeDamage(weapon.damage);
-
-            if(enemyHealth.health <= 0 && enemyHealth.isDead == false)
-            {
-                Rigidbody rb = collision.gameObject.GetComponent<Rigidbody>();
-                rb.AddForce(dir * weapon.enemyKickBackForce,ForceMode.Impulse);
-                enemyHealth.isDead = true;
-            }
+            PlayerHealth playerHealth = collision.gameObject.GetComponentInParent<PlayerHealth>();
+            playerHealth.photonView.RPC("TakeDamage", RpcTarget.AllBuffered, weapon.damage);
         }
+
+        
         Destroy(this.gameObject);
     }
 }

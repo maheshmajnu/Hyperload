@@ -13,8 +13,8 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     [Header("UI References")]
     public Image HealthBG;       // Screen Space Overlay (Local Player)
     public Image Health;         // Health bar inside Screen Space UI
-    public Image PlayerHealthBG; // World Space (For Other Players)
-    public Image Player_Health;   // Health bar inside World Space UI
+    public Image WorldHealthBG; // World Space (For Other Players)
+    public Image world_Health;   // Health bar inside World Space UI
 
     private Coroutine hideHealthCoroutine;
 
@@ -30,12 +30,12 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         if (photonView.IsMine)
         {
             HealthBG.gameObject.SetActive(true);      // Local player sees Screen Space UI
-            PlayerHealthBG.gameObject.SetActive(false); // Hide world space UI for self
+            WorldHealthBG.gameObject.SetActive(false); // Hide world space UI for self
         }
         else
         {
             HealthBG.gameObject.SetActive(false);     // Other players shouldn't see our screen UI
-            PlayerHealthBG.gameObject.SetActive(true); // Show world space UI to others
+            WorldHealthBG.gameObject.SetActive(false); // Show world space UI to others
         }
     }
 
@@ -65,13 +65,13 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
             Health.fillAmount = currentHealth / maxHealth; // Local Player UI
         }
 
-        Player_Health.fillAmount = currentHealth / maxHealth; // World Space UI
+        world_Health.fillAmount = currentHealth / maxHealth; // World Space UI
     }
 
     [PunRPC]
     private void ShowWorldHealthUI()
     {
-        PlayerHealthBG.gameObject.SetActive(true);
+        WorldHealthBG.gameObject.SetActive(true);
 
         // Stop any existing hide coroutine
         if (hideHealthCoroutine != null)
@@ -85,8 +85,8 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
 
     private IEnumerator HideWorldHealthUI()
     {
-        yield return new WaitForSeconds(0.5f);
-        PlayerHealthBG.gameObject.SetActive(false);
+        yield return new WaitForSeconds(1f);
+        WorldHealthBG.gameObject.SetActive(false);
     }
 
     private void Die()

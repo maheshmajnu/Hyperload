@@ -7,32 +7,41 @@ using Photon.Pun;
 public class PlayerSetup : MonoBehaviourPunCallbacks
 {
     public GameObject MainCamera;
-    public GameObject thirdPersonCamera;
-    public GameObject AimCamera;
+    public GameObject thirdPersonCameraVC;
+    
     public GameObject UiCanvas;
-    public PlayerController playerController;
+    public MovementStateManager movementStateManager;
+    public AimStateManager aimStateManager;
+    public ActionStateManager actionStateManager;
     // Start is called before the first frame update
     void Start()
     {
-        playerController = GetComponentInChildren<PlayerController>();
+        movementStateManager = GetComponent<MovementStateManager>();
+        aimStateManager = GetComponent<AimStateManager>();
+        actionStateManager = GetComponent<ActionStateManager>();
 
-        if(photonView.IsMine)
+        if (photonView.IsMine)
         {
             MainCamera.SetActive(true);
-            thirdPersonCamera.SetActive(true);
-            AimCamera.SetActive(true);
+            thirdPersonCameraVC.SetActive(true);
             UiCanvas.SetActive(true);
-            playerController.enabled = true;
+
+            movementStateManager.enabled = true;
+            aimStateManager.enabled = true;
+            actionStateManager.enabled = true;
         }
         else
         {
             MainCamera.SetActive(false);
-            thirdPersonCamera.SetActive(false);
-            AimCamera.SetActive(false);
+            thirdPersonCameraVC.SetActive(false);
             UiCanvas.SetActive(false);
-            playerController.enabled = false;
+
+            movementStateManager.enabled = false;
+            aimStateManager.enabled = false;
+            actionStateManager.enabled = false;
         }
     }
 
-    
+
+
 }
