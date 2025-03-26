@@ -9,7 +9,8 @@ public class Learning : MonoBehaviour
     public int Playerhealth = 100;
     public bool IsAlive = true;
     public float PlayerSpeed = 1.5f;
-
+    public Vector3 Move = new Vector3(10, 10, 10);
+    public GameObject Mahesh;
 
 
 
@@ -30,9 +31,12 @@ public class Learning : MonoBehaviour
     void Start()
     {
 
-        Printstats();
+        Mahesh.transform.position = Move;
         
     }
+
+
+
 
    void Printstats()
 
