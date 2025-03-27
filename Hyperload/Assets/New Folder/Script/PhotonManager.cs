@@ -118,6 +118,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsMasterClient)
         {
+            ActivateMyPanel(connectingPanel.name);
             PhotonNetwork.LoadLevel("Game");
         }
     }

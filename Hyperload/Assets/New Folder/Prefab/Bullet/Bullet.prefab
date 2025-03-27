@@ -252,3 +252,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   timeToDestroy: 10
+  weapon: {fileID: 0}
+  dir: {x: 0, y: 0, z: 0}
+  hitEffectPrefab: {fileID: 100002, guid: 627bfa08ce624ab40ab2fea71785b5f0, type: 3}

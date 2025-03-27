@@ -13,12 +13,15 @@ public class PlayerSetup : MonoBehaviourPunCallbacks
     public MovementStateManager movementStateManager;
     public AimStateManager aimStateManager;
     public ActionStateManager actionStateManager;
+    public WeaponManager weaponManager;
     // Start is called before the first frame update
     void Start()
     {
         movementStateManager = GetComponent<MovementStateManager>();
         aimStateManager = GetComponent<AimStateManager>();
         actionStateManager = GetComponent<ActionStateManager>();
+        weaponManager = GetComponentInChildren<WeaponManager>();
+
 
         if (photonView.IsMine)
         {
@@ -29,6 +32,7 @@ public class PlayerSetup : MonoBehaviourPunCallbacks
             movementStateManager.enabled = true;
             aimStateManager.enabled = true;
             actionStateManager.enabled = true;
+            weaponManager.enabled = true;
         }
         else
         {
@@ -39,6 +43,7 @@ public class PlayerSetup : MonoBehaviourPunCallbacks
             movementStateManager.enabled = false;
             aimStateManager.enabled = false;
             actionStateManager.enabled = false;
+            weaponManager .enabled = false;
         }
     }
 

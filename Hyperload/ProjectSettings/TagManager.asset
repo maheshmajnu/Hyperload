@@ -5,6 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - Ground
+  - Body
+  - Head
+  - Hand
+  - Leg
   layers:
   - Default
   - TransparentFX
