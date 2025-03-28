@@ -110,4 +110,11 @@ public class MovementStateManager : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(spherePos, characterController.radius - 0.05f);
     }
+
+    public void Launch(Vector3 launchVelocity)
+    {
+        velocity.y = launchVelocity.y;
+        jumped = true;
+    }
+
 }

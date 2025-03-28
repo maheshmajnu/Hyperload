@@ -9,6 +9,7 @@ public class Bullet : MonoBehaviour
     [HideInInspector] public WeaponManager weapon;
     [HideInInspector] public Vector3 dir;
     [SerializeField] private GameObject hitEffectPrefab;
+    [SerializeField] private GameObject playerHitEffectPrefab;
 
 
     // Start is called before the first frame update
@@ -23,22 +24,27 @@ public class Bullet : MonoBehaviour
     {
         Debug.Log("Bullet hit: " + collision.gameObject.name);
 
-        // Check if it hit a player
         PlayerHealth playerHealth = collision.gameObject.GetComponentInParent<PlayerHealth>();
+        ContactPoint contact = collision.contacts[0];
+
         if (playerHealth != null)
         {
+            // Apply damage
             float finalDamage = GetDamageBasedOnTag(collision.collider.tag);
             playerHealth.photonView.RPC("TakeDamage", RpcTarget.AllBuffered, finalDamage);
-        }
 
+            // Spawn player hit effect (like blood)
+            SpawnPlayerHitEffect(contact.point, contact.normal);
+        }
         else
         {
-            // Not a player = spawn hit particle
-            SpawnHitEffect(collision.contacts[0].point, collision.contacts[0].normal);
+            // Spawn regular hit effect (dust/sparks)
+            SpawnHitEffect(contact.point, contact.normal);
         }
 
-        Destroy(this.gameObject);
+        Destroy(this.gameObject); // Bullet gone
     }
+
 
     private void SpawnHitEffect(Vector3 position, Vector3 normal)
     {
@@ -46,6 +52,15 @@ public class Bullet : MonoBehaviour
         {
             GameObject effect = Instantiate(hitEffectPrefab, position, Quaternion.LookRotation(normal));
             Destroy(effect, 5f); // destroy after 5 seconds
+        }
+    }
+
+    private void SpawnPlayerHitEffect(Vector3 position, Vector3 normal)
+    {
+        if (playerHitEffectPrefab != null)
+        {
+            GameObject effect = Instantiate(playerHitEffectPrefab, position, Quaternion.LookRotation(normal));
+            Destroy(effect, 1f);
         }
     }
 

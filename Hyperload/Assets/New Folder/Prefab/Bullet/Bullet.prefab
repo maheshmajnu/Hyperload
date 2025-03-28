@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 628139892615915124}
   - component: {fileID: 3973885978141612149}
   - component: {fileID: 3298185319430766040}
-  m_Layer: 10
+  m_Layer: 0
   m_Name: Bullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -255,3 +255,5 @@ MonoBehaviour:
   weapon: {fileID: 0}
   dir: {x: 0, y: 0, z: 0}
   hitEffectPrefab: {fileID: 100002, guid: 627bfa08ce624ab40ab2fea71785b5f0, type: 3}
+  playerHitEffectPrefab: {fileID: 100014, guid: 5332791ebce075d4a9e56f4581e7fb47,
+    type: 3}
