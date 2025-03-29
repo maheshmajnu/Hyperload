@@ -8602,9 +8602,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentMoveSpeed: 0
-  walkSpeed: 3
+  walkSpeed: 5
   walkBackSpeed: 2
-  runSpeed: 7
+  runSpeed: 9
   runBackSpeed: 5
   crouchSpeed: 2
   crouchBackSpeed: 1
@@ -8617,7 +8617,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   gravity: -9.81
-  jumpforce: 5
+  jumpforce: 6
   jumped: 0
   anim: {fileID: 0}
 --- !u!114 &6051663165643310330
@@ -8738,6 +8738,7 @@ MonoBehaviour:
   movementStateManager: {fileID: 0}
   aimStateManager: {fileID: 0}
   actionStateManager: {fileID: 0}
+  weaponManager: {fileID: 0}
 --- !u!114 &3467331316452173153
 MonoBehaviour:
   m_ObjectHideFlags: 0
