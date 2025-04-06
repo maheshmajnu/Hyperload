@@ -103,8 +103,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 4044449411549658553}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -123,7 +123,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 38580612525207300}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -136,7 +136,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: ede97433dbfddf04fbf68d06dfd12ee4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -11352,7 +11352,7 @@ Transform:
   m_GameObject: {fileID: 3587436986988081628}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.6210003, y: 1.6690009, z: -2.6190033}
+  m_LocalPosition: {x: 0.62100005, y: 1.6689999, z: -2.619}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -17944,6 +17944,7 @@ GameObject:
   - component: {fileID: 7844093542896881231}
   - component: {fileID: 55555994379934035}
   - component: {fileID: 6687109750085509251}
+  - component: {fileID: 6960270803012497504}
   - component: {fileID: 7022664644250516341}
   - component: {fileID: 9138527994906117226}
   - component: {fileID: 6290715753378832810}
@@ -18027,7 +18028,7 @@ MonoBehaviour:
   groundYOffset: 0.06
   groundMask:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 3969
   gravity: -9.81
   jumpforce: 5
   jumped: 0
@@ -18058,7 +18059,7 @@ MonoBehaviour:
   aimSmoothSpeed: 10
   aimMask:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 65
   crouchCamHeight: 0.6
   shoulderSwapSpeed: 10
 --- !u!95 &723939533974111824
@@ -18127,7 +18128,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37c32acf1d515484b91a8a4b0d0d3804, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
+  maxHealth: 1000
   HealthBG: {fileID: 294008228166024865}
   Health: {fileID: 1983566485123894599}
   WorldHealthBG: {fileID: 3878474700862114424}
@@ -18163,6 +18164,20 @@ MonoBehaviour:
   aimStateManager: {fileID: 0}
   actionStateManager: {fileID: 0}
   weaponManager: {fileID: 0}
+--- !u!114 &6960270803012497504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5736780623930573234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3ed4370b79ece44484944cbd3b41fef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMat: {fileID: 0}
+  myPlayer: {fileID: 0}
 --- !u!114 &7022664644250516341
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18225,7 +18240,7 @@ MonoBehaviour:
     SynchronizeType: 2
     Name: hrInput
   - Type: 4
-    SynchronizeType: 1
+    SynchronizeType: 2
     Name: Crouching
   - Type: 4
     SynchronizeType: 2
@@ -18234,7 +18249,7 @@ MonoBehaviour:
     SynchronizeType: 2
     Name: Running
   - Type: 4
-    SynchronizeType: 1
+    SynchronizeType: 2
     Name: Aiming
   - Type: 9
     SynchronizeType: 2
@@ -18249,9 +18264,9 @@ MonoBehaviour:
     SynchronizeType: 2
     Name: Falling
   m_SynchronizeLayers:
-  - SynchronizeType: 1
+  - SynchronizeType: 2
     LayerIndex: 0
-  - SynchronizeType: 1
+  - SynchronizeType: 2
     LayerIndex: 1
 --- !u!1 &5749678570492236618
 GameObject:
@@ -24111,7 +24126,7 @@ Transform:
   m_GameObject: {fileID: 7490272469908474905}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.6210003, y: 1.6690009, z: -2.6190033}
+  m_LocalPosition: {x: 0.62100005, y: 1.6689999, z: -2.619}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
