@@ -9,6 +9,7 @@ TagManager:
   - Head
   - Hand
   - Leg
+  - Yellow
   layers:
   - Default
   - TransparentFX
