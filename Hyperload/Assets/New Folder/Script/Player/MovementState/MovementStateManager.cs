@@ -36,7 +36,9 @@ public class MovementStateManager : MonoBehaviour
 
     [HideInInspector] public Animator anim;
 
+    [HideInInspector] public bool isLaunching = false; // Add this
 
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -59,6 +61,11 @@ public class MovementStateManager : MonoBehaviour
         anim.SetFloat("vrInput", vrInput);
 
         currentState.UpdateState(this);
+
+        if (IsGrounded())
+        {
+            isLaunching = false;
+        }
     }
 
     public void SwiitchState(MovementBaseState state)
@@ -100,7 +107,12 @@ public class MovementStateManager : MonoBehaviour
 
     void Falling() => anim.SetBool("Falling", !IsGrounded());
 
-    public void JumpForce() => velocity.y += jumpforce;
+    public void JumpForce()
+    {
+        if (isLaunching) return; 
+
+        velocity.y += jumpforce;
+    }
 
     public void Jumped() => jumped = true; 
 
@@ -111,10 +123,16 @@ public class MovementStateManager : MonoBehaviour
         Gizmos.DrawWireSphere(spherePos, characterController.radius - 0.05f);
     }
 
-    public void Launch(Vector3 launchVelocity)
+    public void Launch(Vector3 force)
     {
-        velocity.y = launchVelocity.y;
-        jumped = true;
+        velocity.y = 0; // Reset current Y velocity
+        velocity += force;
+        isLaunching = true;
+    }
+
+    public void ResetVerticalVelocity()
+    {
+        velocity.y = 0;
     }
 
 }

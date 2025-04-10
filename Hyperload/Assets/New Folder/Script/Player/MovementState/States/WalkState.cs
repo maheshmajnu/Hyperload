@@ -16,10 +16,10 @@ public class WalkState : MovementBaseState
 
         if (movement.vrInput < 0) movement.currentMoveSpeed = movement.walkBackSpeed;
         else movement.currentMoveSpeed = movement.walkSpeed;
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && !movement.isLaunching)
         {
             movement.previousState = this;
-            ExitState(movement, movement.Jump);
+            movement.SwiitchState(movement.Jump);
         }
     }
 

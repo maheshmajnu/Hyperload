@@ -11,6 +11,13 @@ public class LaunchPad : MonoBehaviour
             MovementStateManager move = other.GetComponentInChildren<MovementStateManager>();
             if (move != null)
             {
+                // Set launching flag immediately to block jump
+                move.isLaunching = true;
+
+                // Reset velocity before applying launch
+                move.ResetVerticalVelocity();
+
+                // Launch!
                 move.Launch(Vector3.up * launchForce);
             }
         }

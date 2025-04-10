@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
 
-
 public class PlayerHealth : MonoBehaviourPunCallbacks
 {
     [Header("Health Settings")]
@@ -11,95 +10,63 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     private float currentHealth;
 
     [Header("UI References")]
-    public Image HealthBG;       // Screen Space Overlay (Local Player)
-    public Image Health;         // Health bar inside Screen Space UI
-    public Image WorldHealthBG; // World Space (For Other Players)
-    public Image world_Health;   // Health bar inside World Space UI
-
-    private Coroutine hideHealthCoroutine;
+    public Image HealthBG;        // Screen Space (local player)
+    public Image Health;          // Fill bar for local
+    public Image WorldHealthBG;   // World Space (for others)
+    public Image world_Health;    // Fill bar for others
 
     private void Start()
     {
         currentHealth = maxHealth;
         SetupUI();
-        UpdateHealthUI();
+        UpdateUI();
     }
 
     private void SetupUI()
     {
         if (photonView.IsMine)
         {
-            HealthBG.gameObject.SetActive(true);      // Local player sees Screen Space UI
-            WorldHealthBG.gameObject.SetActive(false); // Hide world space UI for self
+            // For local player
+            if (HealthBG != null) HealthBG.gameObject.SetActive(true);
+            if (WorldHealthBG != null) WorldHealthBG.gameObject.SetActive(false);
         }
         else
         {
-            HealthBG.gameObject.SetActive(false);     // Other players shouldn't see our screen UI
-            WorldHealthBG.gameObject.SetActive(false); // Show world space UI to others
+            // For other players
+            if (HealthBG != null) HealthBG.gameObject.SetActive(false);
+            if (WorldHealthBG != null) WorldHealthBG.gameObject.SetActive(true);
         }
     }
 
     [PunRPC]
     public void TakeDamage(float damage)
     {
-        if (!photonView.IsMine) return; // Only the damaged player should update their own health
+        if (!photonView.IsMine) return;
 
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-        UpdateHealthUI();
+        UpdateUI();
 
-        // Notify other players to show the world space health bar
-        photonView.RPC("ShowWorldHealthUI", RpcTarget.Others);
-
-        // Check for death
         if (currentHealth <= 0)
         {
             Die();
         }
     }
 
-    private void UpdateHealthUI()
+    private void UpdateUI()
     {
-        if (photonView.IsMine)
-        {
-            Health.fillAmount = currentHealth / maxHealth; // Local Player UI
-        }
+        float fill = currentHealth / maxHealth;
 
-        world_Health.fillAmount = currentHealth / maxHealth; // World Space UI
-    }
+        if (photonView.IsMine && Health != null)
+            Health.fillAmount = fill;
 
-    [PunRPC]
-    private void ShowWorldHealthUI()
-    {
-        WorldHealthBG.gameObject.SetActive(true);
-
-        // Stop any existing hide coroutine
-        if (hideHealthCoroutine != null)
-        {
-            StopCoroutine(hideHealthCoroutine);
-        }
-
-        // Hide world health UI after 0.5 seconds
-        hideHealthCoroutine = StartCoroutine(HideWorldHealthUI());
-    }
-
-    private IEnumerator HideWorldHealthUI()
-    {
-        yield return new WaitForSeconds(1f);
-        WorldHealthBG.gameObject.SetActive(false);
+        if (world_Health != null)
+            world_Health.fillAmount = fill;
     }
 
     private void Die()
     {
-        Debug.Log(gameObject.name + " has died!");
-
-        // Disable player components
-        if (photonView.IsMine)
-        {
-            GetComponent<PlayerController>().enabled = false;
-            this.enabled = false;
-        }
-
-        // Optionally: Destroy or respawn the player (Handle in GameManager)
+        Debug.Log($"{gameObject.name} has died!");
+        // You can add respawn logic or ragdoll trigger here
     }
 }
