@@ -97,7 +97,10 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     {
         Debug.Log($"{gameObject.name} has died!");
         GameManager.Instance.TriggerRagdollEffect(gameObject);
-        GameManager.Instance.HandlePlayerDeath(photonView.Owner);
+        if (photonView.IsMine)
+        {
+            GameManager.Instance.HandlePlayerDeath(PhotonNetwork.LocalPlayer);
+        }
         StartCoroutine(DestroyPlayerAfterDelay(5f));
     }
 
