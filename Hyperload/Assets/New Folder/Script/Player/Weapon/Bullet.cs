@@ -1,57 +1,57 @@
 using System.Collections;
-using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    [SerializeField] float timeToDestroy;
+    [SerializeField] float timeToDestroy = 5f;
     [HideInInspector] public WeaponManager weapon;
     [HideInInspector] public Vector3 dir;
+
     [SerializeField] private GameObject hitEffectPrefab;
     [SerializeField] private GameObject playerHitEffectPrefab;
 
-
-    // Start is called before the first frame update
     void Start()
     {
         Destroy(this.gameObject, timeToDestroy);
     }
 
-
-
     private void OnCollisionEnter(Collision collision)
     {
         Debug.Log("Bullet hit: " + collision.gameObject.name);
 
-        PlayerHealth playerHealth = collision.gameObject.GetComponentInParent<PlayerHealth>();
         ContactPoint contact = collision.contacts[0];
 
-        if (playerHealth != null)
-        {
-            // Apply damage
-            float finalDamage = GetDamageBasedOnTag(collision.collider.tag);
-            playerHealth.photonView.RPC("TakeDamage", RpcTarget.AllBuffered, finalDamage);
+        // Try to find PlayerHealth and PhotonView on parent
+        PlayerHealth playerHealth = collision.gameObject.GetComponentInParent<PlayerHealth>();
+        PhotonView targetView = collision.gameObject.GetComponentInParent<PhotonView>();
 
-            // Spawn player hit effect (like blood)
+        if (playerHealth != null && targetView != null && !targetView.IsMine)
+        {
+            // Calculate damage based on hit tag
+            float finalDamage = GetDamageBasedOnTag(collision.collider.tag);
+
+            // Send RPC to the correct player only
+            targetView.RPC("TakeDamage", targetView.Owner, finalDamage);
+
+            // Spawn player hit effect (e.g., blood)
             SpawnPlayerHitEffect(contact.point, contact.normal);
         }
         else
         {
-            // Spawn regular hit effect (dust/sparks)
+            // Hit environment or non-player
             SpawnHitEffect(contact.point, contact.normal);
         }
 
-        Destroy(this.gameObject); // Bullet gone
+        Destroy(this.gameObject); // Destroy bullet
     }
-
 
     private void SpawnHitEffect(Vector3 position, Vector3 normal)
     {
         if (hitEffectPrefab != null)
         {
             GameObject effect = Instantiate(hitEffectPrefab, position, Quaternion.LookRotation(normal));
-            Destroy(effect, 5f); // destroy after 5 seconds
+            Destroy(effect, 5f);
         }
     }
 
@@ -64,26 +64,24 @@ public class Bullet : MonoBehaviour
         }
     }
 
-
     private float GetDamageBasedOnTag(string tag)
     {
         switch (tag)
         {
             case "Head":
                 Debug.Log("Headshot!");
-                return weapon.damage * 2.0f; // Headshot = double damage
+                return weapon.damage * 5f;
             case "Body":
                 Debug.Log("Bodyshot!");
-                return weapon.damage * 1.0f; // Normal damage
+                return weapon.damage * 4f;
             case "Hand":
                 Debug.Log("Handshot!");
-                return weapon.damage * 0.7f; // Slightly less
+                return weapon.damage * 3f;
             case "Leg":
                 Debug.Log("Legshot!");
-                return weapon.damage * 0.5f; // Least damage
+                return weapon.damage * 2f;
             default:
-                return weapon.damage; // fallback
+                return weapon.damage;
         }
     }
-
 }

@@ -16,7 +16,7 @@ public class LaunchPad : MonoBehaviour
 
                 // Reset velocity before applying launch
                 move.ResetVerticalVelocity();
-
+                move.TemporarilyDisableJumpForce(1f);
                 // Launch!
                 move.Launch(Vector3.up * launchForce);
             }

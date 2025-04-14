@@ -21,7 +21,10 @@ public class MovementStateManager : MonoBehaviour
 
     [SerializeField] float gravity = -9.81f;
     [SerializeField] float jumpforce = 10;
+    [SerializeField] float slamDownForce = -30f;
     [HideInInspector] public bool jumped;
+    private float originalJumpForce;
+    private bool jumpForceTemporarilyDisabled = false;
     Vector3 velocity;
 
     public MovementBaseState previousState;
@@ -42,6 +45,7 @@ public class MovementStateManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        originalJumpForce = jumpforce;
         anim = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
         SwiitchState(Idle);
@@ -65,6 +69,11 @@ public class MovementStateManager : MonoBehaviour
         if (IsGrounded())
         {
             isLaunching = false;
+        }
+
+        if (!IsGrounded() && Input.GetKeyDown(KeyCode.G))
+        {
+            SlamDown();
         }
     }
 
@@ -109,8 +118,7 @@ public class MovementStateManager : MonoBehaviour
 
     public void JumpForce()
     {
-        if (isLaunching) return; 
-
+        //Debug.Log("JumpForce called. Current force: " + jumpforce);
         velocity.y += jumpforce;
     }
 
@@ -129,10 +137,30 @@ public class MovementStateManager : MonoBehaviour
         velocity += force;
         isLaunching = true;
     }
+    public void TemporarilyDisableJumpForce(float duration)
+    {
+        if (jumpForceTemporarilyDisabled) return;
 
+        jumpForceTemporarilyDisabled = true;
+        jumpforce = 0;
+        StartCoroutine(RestoreJumpForceAfterDelay(duration));
+    }
+
+    private IEnumerator RestoreJumpForceAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        jumpforce = originalJumpForce;
+        jumpForceTemporarilyDisabled = false;
+    }
     public void ResetVerticalVelocity()
     {
         velocity.y = 0;
+    }
+
+    public void SlamDown()
+    {
+        Debug.Log("Slammed down!");
+        velocity.y = slamDownForce;
     }
 
 }
