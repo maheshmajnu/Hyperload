@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private Dictionary<Player, int> playerLives = new Dictionary<Player, int>();
     private Dictionary<Player, GameObject> playerInstances = new Dictionary<Player, GameObject>();
+    private Dictionary<Player, bool> isRespawning = new Dictionary<Player, bool>();
 
     private void Awake()
     {
@@ -33,6 +34,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void SpawnPlayer()
     {
+        Debug.Log("Spawning Player for: " + PhotonNetwork.LocalPlayer.NickName);
         int randomNumber = Random.Range(-10, 10);
         GameObject playerObj = PhotonNetwork.Instantiate(playerPrefab.name, new Vector3(randomNumber, 25 , randomNumber), Quaternion.identity);
 
@@ -52,6 +54,9 @@ public class GameManager : MonoBehaviourPunCallbacks
             health.ResetHealth();
             health.SetLivesUI(playerLives[PhotonNetwork.LocalPlayer]);
         }
+
+        // Reset respawn lock
+        isRespawning[PhotonNetwork.LocalPlayer] = false;
     }
 
     public void HandlePlayerDeath(Player deadPlayer)
@@ -66,6 +71,13 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             if (deadPlayer == PhotonNetwork.LocalPlayer)
             {
+                if (isRespawning.ContainsKey(deadPlayer) && isRespawning[deadPlayer])
+                {
+                    Debug.LogWarning("Already respawning this player: " + deadPlayer.NickName);
+                    return;
+                }
+
+                isRespawning[deadPlayer] = true;
                 StartCoroutine(RespawnAfterDelay(deadPlayer, 20f));
             }
         }
@@ -80,9 +92,11 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
     }
 
+
     private IEnumerator RespawnAfterDelay(Player player, float delay)
     {
         yield return new WaitForSeconds(delay);
+        Debug.Log("Spawning Player for: " + PhotonNetwork.LocalPlayer.NickName);
         SpawnPlayer();
     }
 

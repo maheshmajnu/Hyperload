@@ -16,6 +16,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     public Image WorldHealthBG;    // World Space (for others)
     public Image world_Health;     // Fill bar for others
     public TMP_Text playerLives;
+    private bool isDead = false;
 
     private void Start()
     {
@@ -41,15 +42,12 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     [PunRPC]
     public void TakeDamage(float damage)
     {
-        Debug.Log($"[RPC] {photonView.Owner.NickName} took {damage} damage.");
-        if (!photonView.IsMine) return;
+        if (!photonView.IsMine || isDead) return;
 
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
         UpdateUI();
-
-        // Sync health bar to others (world health)
         photonView.RPC("SyncWorldHealth", RpcTarget.Others, currentHealth / maxHealth);
 
         if (currentHealth <= 0)
@@ -81,6 +79,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     public void ResetHealth()
     {
         currentHealth = maxHealth;
+        isDead = false; // allow damage again on respawn
         UpdateUI();
     }
 
@@ -88,20 +87,26 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     {
         if (photonView.IsMine && playerLives != null)
         {
-            playerLives.text = "Lives: " + lives.ToString();
+            playerLives.text =  lives.ToString();
         }
     }
 
 
     private void Die()
     {
+        if (isDead) return; // safety check
+        isDead = true;
+
         Debug.Log($"{gameObject.name} has died!");
+
         GameManager.Instance.TriggerRagdollEffect(gameObject);
+
         if (photonView.IsMine)
         {
             GameManager.Instance.HandlePlayerDeath(PhotonNetwork.LocalPlayer);
         }
-        StartCoroutine(DestroyPlayerAfterDelay(5f));
+
+        StartCoroutine(DestroyPlayerAfterDelay(1f));
     }
 
     private IEnumerator DestroyPlayerAfterDelay(float delay)
