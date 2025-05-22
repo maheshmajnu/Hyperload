@@ -66,7 +66,10 @@ public class AimStateManager : MonoBehaviourPunCallbacks
             actualAimPosition = hit.point;
 
             // Send the aim position to others
-            photonView.RPC("RPC_UpdateAimPos", RpcTarget.Others, actualAimPosition);
+            if (PhotonNetwork.IsConnected && photonView.IsMine)
+            {
+                photonView.RPC("RPC_UpdateAimPos", RpcTarget.Others, actualAimPosition);
+            }
         }
 
         MoveCamera();
