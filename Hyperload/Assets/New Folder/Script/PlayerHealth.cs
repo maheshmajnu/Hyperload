@@ -9,14 +9,14 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     [Header("Health Settings")]
     public float maxHealth = 100f;
     private float currentHealth;
+    private bool isDead = false;
 
     [Header("UI References")]
-    public Image HealthBG;         // Screen Space (local player)
-    public Image Health;           // Fill bar for local
-    public Image WorldHealthBG;    // World Space (for others)
-    public Image world_Health;     // Fill bar for others
+    public Image HealthBG;
+    public Image Health;
+    public Image WorldHealthBG;
+    public Image world_Health;
     public TMP_Text playerLives;
-    private bool isDead = false;
 
     private void Start()
     {
@@ -72,34 +72,36 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         if (photonView.IsMine && Health != null)
             Health.fillAmount = fill;
 
-        if (world_Health != null && !photonView.IsMine)
+        if (!photonView.IsMine && world_Health != null)
             world_Health.fillAmount = fill;
     }
 
     public void ResetHealth()
     {
         currentHealth = maxHealth;
-        isDead = false; // allow damage again on respawn
+        isDead = false;
         UpdateUI();
     }
 
     public void SetLivesUI(int lives)
     {
-        if (photonView.IsMine && playerLives != null)
+        if (playerLives != null)
         {
-            playerLives.text =  lives.ToString();
+            playerLives.text = lives.ToString();
         }
     }
 
-
     private void Die()
     {
-        if (isDead) return; // safety check
+        if (isDead) return;
         isDead = true;
 
-        Debug.Log($"{gameObject.name} has died!");
+        Debug.Log($"{photonView.Owner.NickName} has died!");
 
-        GameManager.Instance.TriggerRagdollEffect(gameObject);
+        // Trigger ragdoll
+        RagdollManager rag = GetComponent<RagdollManager>();
+        if (rag != null)
+            rag.TriggerRagdoll();
 
         if (photonView.IsMine)
         {
@@ -112,8 +114,10 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     private IEnumerator DestroyPlayerAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        PhotonNetwork.Destroy(transform.root.gameObject); // Destroy full prefab
+        if (photonView.IsMine)
+        {
+            PhotonNetwork.Destroy(photonView.transform.root.gameObject);
+        }
     }
-
 
 }

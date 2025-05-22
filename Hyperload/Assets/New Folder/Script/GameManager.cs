@@ -7,24 +7,31 @@ using TMPro;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
-    [SerializeField] private GameObject playerPrefab;
     public static GameManager Instance;
+
+    [Header("References")]
+    public GameObject playerPrefab;
     public GameObject winnerPanel;
     public TMP_Text winnerText;
 
+    [Header("Tracking")]
+    [SerializeField] public List<GameObject> alivePlayers = new List<GameObject>();
+
     private Dictionary<Player, int> playerLives = new Dictionary<Player, int>();
-    private Dictionary<Player, GameObject> playerInstances = new Dictionary<Player, GameObject>();
     private Dictionary<Player, bool> isRespawning = new Dictionary<Player, bool>();
+
+    private PhotonView photonView;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
+        photonView = GetComponent<PhotonView>();
     }
 
-    void Start()
+    private void Start()
     {
-        if (winnerPanel != null) winnerPanel.SetActive(false);
-        if (winnerText != null) winnerText.text = "";
+        if (winnerPanel) winnerPanel.SetActive(false);
+        if (winnerText) winnerText.text = "";
 
         if (PhotonNetwork.IsConnectedAndReady)
         {
@@ -34,108 +41,126 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void SpawnPlayer()
     {
-        Debug.Log("Spawning Player for: " + PhotonNetwork.LocalPlayer.NickName);
-        int randomNumber = Random.Range(-10, 10);
-        GameObject playerObj = PhotonNetwork.Instantiate(playerPrefab.name, new Vector3(randomNumber, 25 , randomNumber), Quaternion.identity);
+        int rand = Random.Range(-10, 10);
+        GameObject playerRoot = PhotonNetwork.Instantiate(playerPrefab.name, new Vector3(rand, 25, rand), Quaternion.identity);
 
-        // Track lives
-        if (!playerLives.ContainsKey(PhotonNetwork.LocalPlayer))
-        {
-            playerLives[PhotonNetwork.LocalPlayer] = 3;
-        }
-
-        // Track instance
-        playerInstances[PhotonNetwork.LocalPlayer] = playerObj;
-
-        // Reset health
-        PlayerHealth health = playerObj.GetComponentInChildren<PlayerHealth>();
-        if (health != null)
-        {
-            health.ResetHealth();
-            health.SetLivesUI(playerLives[PhotonNetwork.LocalPlayer]);
-        }
-
-        // Reset respawn lock
-        isRespawning[PhotonNetwork.LocalPlayer] = false;
+        StartCoroutine(TrackPlayerAfterSpawn(playerRoot));
     }
 
-    public void HandlePlayerDeath(Player deadPlayer)
+    private IEnumerator TrackPlayerAfterSpawn(GameObject root)
     {
-        if (!playerLives.ContainsKey(deadPlayer)) return;
+        PhotonView foundView = null;
+        PlayerHealth foundHealth = null;
 
-        playerLives[deadPlayer]--;
-
-        Debug.Log($"{deadPlayer.NickName} died. Remaining lives: {playerLives[deadPlayer]}");
-
-        if (playerLives[deadPlayer] > 0)
+        float timer = 0f;
+        while (timer < 10f)
         {
-            if (deadPlayer == PhotonNetwork.LocalPlayer)
-            {
-                if (isRespawning.ContainsKey(deadPlayer) && isRespawning[deadPlayer])
-                {
-                    Debug.LogWarning("Already respawning this player: " + deadPlayer.NickName);
-                    return;
-                }
+            foundView = root.GetComponentInChildren<PhotonView>();
+            foundHealth = root.GetComponentInChildren<PlayerHealth>();
 
-                isRespawning[deadPlayer] = true;
-                StartCoroutine(RespawnAfterDelay(deadPlayer, 20f));
+            if (foundView != null && foundHealth != null)
+            {
+                break;
             }
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        if (foundView == null || foundHealth == null)
+        {
+            Debug.LogError("Failed to find PhotonView or PlayerHealth within 10 seconds.");
+            yield break;
+        }
+
+        Player owner = foundView.Owner;
+
+        if (!playerLives.ContainsKey(owner))
+            playerLives[owner] = 3;
+
+        foundHealth.ResetHealth();
+        foundHealth.SetLivesUI(playerLives[owner]);
+
+        isRespawning[owner] = false;
+
+        if (!alivePlayers.Contains(root))
+            alivePlayers.Add(root);
+    }
+
+    public void HandlePlayerDeath(Player player)
+    {
+        if (!playerLives.ContainsKey(player))
+            return;
+
+        playerLives[player]--;
+
+        if (playerLives[player] > 0)
+        {
+            if (isRespawning.ContainsKey(player) && isRespawning[player])
+                return;
+
+            isRespawning[player] = true;
+            StartCoroutine(RespawnPlayerAfterDelay(player, 5f));
         }
         else
         {
-            if (deadPlayer == PhotonNetwork.LocalPlayer)
-            {
-                Debug.Log("You are out of lives!");
-            }
-
-            CheckWinner();
+            RemoveFromAlive(player);
+            StartCoroutine(CheckWinnerAfterDelay(10f));
         }
     }
 
+    private void RemoveFromAlive(Player player)
+    {
+        GameObject objToRemove = null;
 
-    private IEnumerator RespawnAfterDelay(Player player, float delay)
+        foreach (var obj in alivePlayers)
+        {
+            PhotonView pv = obj.GetComponentInChildren<PhotonView>();
+            if (pv != null && pv.Owner == player)
+            {
+                objToRemove = obj;
+                break;
+            }
+        }
+
+        if (objToRemove != null)
+            alivePlayers.Remove(objToRemove);
+    }
+
+    private IEnumerator RespawnPlayerAfterDelay(Player player, float delay)
     {
         yield return new WaitForSeconds(delay);
-        Debug.Log("Spawning Player for: " + PhotonNetwork.LocalPlayer.NickName);
-        SpawnPlayer();
-    }
 
-    public void TriggerRagdollEffect(GameObject playerObject)
-    {
-        RagdollManager ragdoll = playerObject.GetComponentInChildren<RagdollManager>();
-        if (ragdoll != null)
+        if (PhotonNetwork.LocalPlayer == player)
         {
-            ragdoll.TriggerRagdoll();
+            SpawnPlayer();
         }
     }
 
-    private void CheckWinner()
+    private IEnumerator CheckWinnerAfterDelay(float delay)
     {
-        int aliveCount = 0;
-        Player lastAlive = null;
+        yield return new WaitForSeconds(delay);
 
-        foreach (var kvp in playerLives)
+        alivePlayers.RemoveAll(p => p == null); // clean nulls
+
+        if (alivePlayers.Count == 1)
         {
-            if (kvp.Value > 0)
+            PhotonView pv = alivePlayers[0].GetComponentInChildren<PhotonView>();
+            if (pv != null)
             {
-                aliveCount++;
-                lastAlive = kvp.Key;
+                photonView.RPC("ShowWinner", RpcTarget.All, pv.Owner.NickName);
             }
         }
-
-        if (aliveCount == 1)
+        else if (alivePlayers.Count == 0)
         {
-            Debug.Log($" Winner is: {lastAlive.NickName}");
-            if (winnerPanel != null) winnerPanel.SetActive(true);
-            if (winnerText != null) winnerText.text = $" Winner: {lastAlive.NickName}";
-        }
-        else if (aliveCount == 0)
-        {
-            Debug.Log(" No one survived!");
-            if (winnerPanel != null) winnerPanel.SetActive(true);
-            if (winnerText != null) winnerText.text = " No one survived!";
+            photonView.RPC("ShowWinner", RpcTarget.All, "No one survived!");
         }
     }
 
-
+    [PunRPC]
+    public void ShowWinner(string winnerName)
+    {
+        if (winnerPanel) winnerPanel.SetActive(true);
+        if (winnerText) winnerText.text = "Winner: " + winnerName;
+    }
 }

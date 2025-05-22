@@ -42,6 +42,12 @@ MonoBehaviour:
   - ShowWorldHealthUI
   - TakeDamage
   - SyncWorldHealth
+  - RPC_SpawnPlayer
+  - RPC_ShowWinner
+  - RPC_ShowWinPanel
+  - RPC_UpdateAimPos
+  - RPC_UpdateAliveList
+  - ShowWinner
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
