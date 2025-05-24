@@ -63,7 +63,11 @@ public class GameManager : MonoBehaviourPunCallbacks
         if (playerObj == null) return;
 
         alivePlayers.Remove(playerObj);
-        Player owner = playerObj.GetComponent<PhotonView>().Owner;
+
+        PhotonView view = playerObj.GetComponentInChildren<PhotonView>();
+        if (view == null) return;  // Safety check
+
+        Player owner = view.Owner;
 
         if (playerLives.ContainsKey(owner))
         {
@@ -81,6 +85,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             }
         }
     }
+
 
     private IEnumerator RespawnCountdown(Player owner)
     {
