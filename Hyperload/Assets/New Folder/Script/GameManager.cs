@@ -112,6 +112,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private void CheckForWinner()
     {
+        Debug.Log("Check for winner");
         if (alivePlayers.Count == 1)
         {
             PhotonView aliveView = alivePlayers[0].GetComponentInChildren<PhotonView>();
