@@ -96,7 +96,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         while (timeLeft > 0)
         {
             if (countdownText != null)
-                countdownText.text = $"Respawning in {Mathf.CeilToInt(timeLeft)}...";
+                countdownText.text = $"{Mathf.CeilToInt(timeLeft)}";
             yield return new WaitForSeconds(1f);
             timeLeft -= 1f;
         }

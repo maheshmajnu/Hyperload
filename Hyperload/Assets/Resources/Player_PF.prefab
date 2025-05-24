@@ -28939,7 +28939,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 3
+  m_text: 100
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -29689,7 +29689,7 @@ MonoBehaviour:
   Health: {fileID: 1587919265668952080}
   WorldHealthBG: {fileID: 7275761017679790185}
   world_Health: {fileID: 2370352366135068890}
-  playerLivesText: {fileID: 0}
+  playerLivesText: {fileID: 5155037933524436609}
 --- !u!114 &1727634189061802523
 MonoBehaviour:
   m_ObjectHideFlags: 0
