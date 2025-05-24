@@ -40,18 +40,13 @@ public class GameManager : MonoBehaviourPunCallbacks
         Vector3 spawnPosition = new Vector3(Random.Range(-10f, 10f), 25f, Random.Range(-10f, 10f));
         GameObject playerRoot = PhotonNetwork.Instantiate(playerPrefab.name, spawnPosition, Quaternion.identity);
 
-        // Only set camera if this is our local player
-        PhotonView view = playerRoot.GetComponentInChildren<PhotonView>(); // Get child PhotonView (under "Player")
+        PhotonView view = playerRoot.GetComponentInChildren<PhotonView>();
         if (view != null && view.IsMine)
         {
             Transform followTarget = playerRoot.transform.Find("Player/CameraFollowPos/RecoilFollowPos");
             if (followTarget != null && CameraController.Instance != null)
             {
                 CameraController.Instance.SetCameraTarget(followTarget);
-            }
-            else
-            {
-                Debug.Log("camera not found");
             }
         }
 
@@ -63,13 +58,11 @@ public class GameManager : MonoBehaviourPunCallbacks
         alivePlayers.Add(playerRoot);
     }
 
-
     public void HandlePlayerDeath(GameObject playerObj)
     {
         if (playerObj == null) return;
 
         alivePlayers.Remove(playerObj);
-
         Player owner = playerObj.GetComponent<PhotonView>().Owner;
 
         if (playerLives.ContainsKey(owner))
@@ -92,16 +85,19 @@ public class GameManager : MonoBehaviourPunCallbacks
     private IEnumerator RespawnCountdown(Player owner)
     {
         float timeLeft = spawnDelay;
-        countdownText.gameObject.SetActive(true);
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(true);
 
         while (timeLeft > 0)
         {
-            countdownText.text = $"Respawning in {Mathf.CeilToInt(timeLeft)}...";
+            if (countdownText != null)
+                countdownText.text = $"Respawning in {Mathf.CeilToInt(timeLeft)}...";
             yield return new WaitForSeconds(1f);
             timeLeft -= 1f;
         }
 
-        countdownText.gameObject.SetActive(false);
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(false);
 
         if (PhotonNetwork.LocalPlayer == owner)
         {
@@ -113,8 +109,12 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         if (alivePlayers.Count == 1)
         {
-            Player winner = alivePlayers[0].GetComponent<PhotonView>().Owner;
-            photonView.RPC("ShowWinner", RpcTarget.All, winner.NickName);
+            PhotonView aliveView = alivePlayers[0].GetComponentInChildren<PhotonView>();
+            if (aliveView != null)
+            {
+                string winnerName = aliveView.Owner.NickName;
+                photonView.RPC("ShowWinner", RpcTarget.All, winnerName);
+            }
         }
     }
 
@@ -122,6 +122,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     private void ShowWinner(string winnerName)
     {
         if (winnerPanel) winnerPanel.SetActive(true);
-        if (winnerText) winnerText.text = $"Winner: {winnerName}!";
+        if (winnerText) winnerText.text = $"Winner: {winnerName}";
     }
 }
