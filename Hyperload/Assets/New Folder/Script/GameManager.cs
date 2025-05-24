@@ -126,7 +126,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     private void ShowWinner(string winnerName)
     {
+        Debug.Log($"Winner: {winnerName}");
         if (winnerPanel) winnerPanel.SetActive(true);
         if (winnerText) winnerText.text = $"Winner: {winnerName}";
+        
     }
 }
