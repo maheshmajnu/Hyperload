@@ -38,8 +38,12 @@ public class AimStateManager : MonoBehaviourPunCallbacks
         ogYpos = camFollowPos.localPosition.y;
         yFollowPos = ogYpos;
 
-        vCam = GetComponentInChildren<CinemachineVirtualCamera>();
-        hipFov = vCam.m_Lens.FieldOfView;
+        vCam = CameraController.Instance?.virtualCam;
+        if (vCam == null)
+            Debug.LogError("vCam is null! Ensure CameraController has a reference.");
+        if (vCam != null)
+            hipFov = vCam.m_Lens.FieldOfView;
+
 
         anim = GetComponent<Animator>();
         SwitchState(Hip);

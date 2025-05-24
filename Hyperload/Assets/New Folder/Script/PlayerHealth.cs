@@ -6,7 +6,7 @@ using TMPro;
 
 public class PlayerHealth : MonoBehaviourPunCallbacks
 {
-    [Header("Health Settings")]
+    [Header("Settings")]
     public float maxHealth = 100f;
     private float currentHealth;
     private bool isDead = false;
@@ -16,53 +16,21 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     public Image Health;
     public Image WorldHealthBG;
     public Image world_Health;
-    public TMP_Text playerLives;
+    public TMP_Text playerLivesText;
 
     private void Start()
     {
         currentHealth = maxHealth;
         SetupUI();
         UpdateUI();
+        UpdateLivesUI();
     }
 
     private void SetupUI()
     {
-        if (photonView.IsMine)
-        {
-            if (HealthBG != null) HealthBG.gameObject.SetActive(true);
-            if (WorldHealthBG != null) WorldHealthBG.gameObject.SetActive(false);
-        }
-        else
-        {
-            if (HealthBG != null) HealthBG.gameObject.SetActive(false);
-            if (WorldHealthBG != null) WorldHealthBG.gameObject.SetActive(true);
-        }
-    }
-
-    [PunRPC]
-    public void TakeDamage(float damage)
-    {
-        if (!photonView.IsMine || isDead) return;
-
-        currentHealth -= damage;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-
-        UpdateUI();
-        photonView.RPC("SyncWorldHealth", RpcTarget.Others, currentHealth / maxHealth);
-
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
-    }
-
-    [PunRPC]
-    public void SyncWorldHealth(float healthPercent)
-    {
-        if (!photonView.IsMine && world_Health != null)
-        {
-            world_Health.fillAmount = healthPercent;
-        }
+        bool mine = photonView.IsMine;
+        if (HealthBG) HealthBG.gameObject.SetActive(mine);
+        if (WorldHealthBG) WorldHealthBG.gameObject.SetActive(!mine);
     }
 
     private void UpdateUI()
@@ -76,18 +44,37 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
             world_Health.fillAmount = fill;
     }
 
-    public void ResetHealth()
+    private void UpdateLivesUI()
     {
-        currentHealth = maxHealth;
-        isDead = false;
-        UpdateUI();
+        if (photonView.IsMine && playerLivesText != null)
+        {
+            int lives = GameManager.Instance.playerLives[PhotonNetwork.LocalPlayer];
+            playerLivesText.text = $"{lives}";
+        }
     }
 
-    public void SetLivesUI(int lives)
+    [PunRPC]
+    public void TakeDamage(float dmg)
     {
-        if (playerLives != null)
+        if (!photonView.IsMine || isDead) return;
+
+        currentHealth -= dmg;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        UpdateUI();
+        photonView.RPC("SyncWorldHealth", RpcTarget.Others, currentHealth / maxHealth);
+
+        if (currentHealth <= 0)
         {
-            playerLives.text = lives.ToString();
+            Die();
+        }
+    }
+
+    [PunRPC]
+    public void SyncWorldHealth(float fill)
+    {
+        if (!photonView.IsMine && world_Health != null)
+        {
+            world_Health.fillAmount = fill;
         }
     }
 
@@ -96,28 +83,24 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         if (isDead) return;
         isDead = true;
 
-        Debug.Log($"{photonView.Owner.NickName} has died!");
+        Debug.Log($"{photonView.Owner.NickName} died.");
 
-        // Trigger ragdoll
         RagdollManager rag = GetComponent<RagdollManager>();
-        if (rag != null)
-            rag.TriggerRagdoll();
+        if (rag) rag.TriggerRagdoll();
 
-        if (photonView.IsMine)
-        {
-            GameManager.Instance.HandlePlayerDeath(PhotonNetwork.LocalPlayer);
-        }
+        UpdateLivesUI();
 
-        StartCoroutine(DestroyPlayerAfterDelay(1f));
+        StartCoroutine(DestroyPlayerAfterDelay(2f));
     }
 
     private IEnumerator DestroyPlayerAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
+
         if (photonView.IsMine)
         {
+            GameManager.Instance.HandlePlayerDeath(photonView.transform.root.gameObject);
             PhotonNetwork.Destroy(photonView.transform.root.gameObject);
         }
     }
-
 }

@@ -1,16 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class RagdollManager : MonoBehaviour
+public class RagdollManager : MonoBehaviourPunCallbacks
 {
     private Rigidbody[] rbs;
     private CharacterController characterController;
     private Animator anim;
+
+    private MovementStateManager movementStateManager;
+    private AimStateManager aimStateManager;
+    private ActionStateManager actionStateManager;
+    private WeaponManager weaponManager;
     // Start is called before the first frame update
     void Start()
     {
+        movementStateManager = GetComponent<MovementStateManager>();
+        aimStateManager = GetComponent<AimStateManager>();
+        actionStateManager = GetComponent<ActionStateManager>();
+        weaponManager = GetComponentInChildren<WeaponManager>();
+
         rbs = GetComponentsInChildren<Rigidbody>();
         foreach (Rigidbody rb in rbs) rb.isKinematic = true;
 
@@ -20,10 +31,27 @@ public class RagdollManager : MonoBehaviour
 
     public void TriggerRagdoll()
     {
-        foreach (Rigidbody rb in rbs) rb.isKinematic = false;
+        if (photonView.IsMine)
+        {
+            photonView.RPC("RPC_ActivateRagdoll", RpcTarget.All);
+        }
+    }
 
-        if (characterController != null) characterController.enabled = false; // Disable it here
-        
-        if (anim != null) anim.enabled = false;
+    [PunRPC]
+    public void RPC_ActivateRagdoll()
+    {
+        if (movementStateManager) movementStateManager.enabled = false;
+        if (aimStateManager) aimStateManager.enabled = false;
+        if (actionStateManager) actionStateManager.enabled = false;
+        if (weaponManager) weaponManager.enabled = false;
+
+        foreach (Rigidbody rb in rbs)
+            rb.isKinematic = false;
+
+        if (characterController != null)
+            characterController.enabled = false;
+
+        if (anim != null)
+            anim.enabled = false;
     }
 }

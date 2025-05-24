@@ -6,8 +6,7 @@ using Photon.Pun;
 
 public class PlayerSetup : MonoBehaviourPunCallbacks
 {
-    public GameObject MainCamera;
-    public GameObject thirdPersonCameraVC;
+    
     
     public GameObject UiCanvas;
     public MovementStateManager movementStateManager;
@@ -25,8 +24,7 @@ public class PlayerSetup : MonoBehaviourPunCallbacks
 
         if (photonView.IsMine)
         {
-            MainCamera.SetActive(true);
-            thirdPersonCameraVC.SetActive(true);
+            
             UiCanvas.SetActive(true);
 
             movementStateManager.enabled = true;
@@ -36,8 +34,7 @@ public class PlayerSetup : MonoBehaviourPunCallbacks
         }
         else
         {
-            MainCamera.SetActive(false);
-            thirdPersonCameraVC.SetActive(false);
+            
             UiCanvas.SetActive(false);
 
             movementStateManager.enabled = false;
