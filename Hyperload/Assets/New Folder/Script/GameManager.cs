@@ -11,15 +11,15 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     [Header("References")]
     public GameObject playerPrefab;
-    public int startingLives = 3;
+    public float Countdown = 120f;  // 2 minutes
     public float spawnDelay = 10f;
+
     public GameObject winnerPanel;
     public TMP_Text winnerText;
     public TMP_Text countdownText;
+    public TMP_Text spawncountdownText;
 
-    [Header("Tracking")]
-    public Dictionary<Player, int> playerLives = new Dictionary<Player, int>();
-    public List<GameObject> alivePlayers = new List<GameObject>();
+    private float countdownTime;
 
     private void Awake()
     {
@@ -29,9 +29,16 @@ public class GameManager : MonoBehaviourPunCallbacks
     private void Start()
     {
         if (winnerPanel) winnerPanel.SetActive(false);
+        countdownTime = Countdown;
+
         if (PhotonNetwork.IsConnectedAndReady)
         {
             SpawnPlayer();
+
+            if (PhotonNetwork.IsMasterClient)
+            {
+                StartCoroutine(GameCountdown());
+            }
         }
     }
 
@@ -49,87 +56,60 @@ public class GameManager : MonoBehaviourPunCallbacks
                 CameraController.Instance.SetCameraTarget(followTarget);
             }
         }
-
-        // Track lives
-        if (!playerLives.ContainsKey(PhotonNetwork.LocalPlayer))
-            playerLives[PhotonNetwork.LocalPlayer] = startingLives;
-
-        // Track alive player
-        alivePlayers.Add(playerRoot);
     }
 
-    public void HandlePlayerDeath(GameObject playerObj)
+    public void HandleRespawn()
     {
-        if (playerObj == null) return;
+        StartCoroutine(RespawnAfterDelay());
+    }
 
-        alivePlayers.Remove(playerObj);
-
-        PhotonView view = playerObj.GetComponentInChildren<PhotonView>();
-        if (view == null) return;  // Safety check
-
-        Player owner = view.Owner;
-
-        if (playerLives.ContainsKey(owner))
+    private IEnumerator RespawnAfterDelay()
+    {
+        if (spawncountdownText != null)
         {
-            playerLives[owner]--;
+            spawncountdownText.gameObject.SetActive(true);
 
-            if (playerLives[owner] > 0)
+            float timer = spawnDelay;
+            while (timer > 0)
             {
-                if (PhotonNetwork.LocalPlayer == owner)
-                    StartCoroutine(RespawnCountdown(owner));
+                spawncountdownText.text = $"{Mathf.CeilToInt(timer)}";
+                yield return new WaitForSeconds(1f);
+                timer -= 1f;
             }
-            else
-            {
-                if (PhotonNetwork.IsMasterClient)
-                    CheckForWinner();
-            }
+
+            spawncountdownText.gameObject.SetActive(false);
         }
+
+        // After countdown, spawn player
+        SpawnPlayer();
     }
 
 
-    private IEnumerator RespawnCountdown(Player owner)
+    private IEnumerator GameCountdown()
     {
-        float timeLeft = spawnDelay;
-        if (countdownText != null)
-            countdownText.gameObject.SetActive(true);
-
-        while (timeLeft > 0)
+        while (countdownTime > 0)
         {
-            if (countdownText != null)
-                countdownText.text = $"{Mathf.CeilToInt(timeLeft)}";
+            photonView.RPC("UpdateCountdownUI", RpcTarget.All, countdownTime);
             yield return new WaitForSeconds(1f);
-            timeLeft -= 1f;
+            countdownTime -= 1f;
         }
 
-        if (countdownText != null)
-            countdownText.gameObject.SetActive(false);
-
-        if (PhotonNetwork.LocalPlayer == owner)
-        {
-            SpawnPlayer();
-        }
-    }
-
-    private void CheckForWinner()
-    {
-        Debug.Log("Check for winner");
-        if (alivePlayers.Count == 1)
-        {
-            PhotonView aliveView = alivePlayers[0].GetComponentInChildren<PhotonView>();
-            if (aliveView != null)
-            {
-                string winnerName = aliveView.Owner.NickName;
-                photonView.RPC("ShowWinner", RpcTarget.All, winnerName);
-            }
-        }
+        photonView.RPC("UpdateCountdownUI", RpcTarget.All, 0f);
+        photonView.RPC("ShowWinnerPanel", RpcTarget.All, "Time's up!");
     }
 
     [PunRPC]
-    private void ShowWinner(string winnerName)
+    private void UpdateCountdownUI(float timeLeft)
     {
-        Debug.Log($"Winner: {winnerName}");
-        if (winnerPanel) winnerPanel.SetActive(true);
-        if (winnerText) winnerText.text = $"Winner: {winnerName}";
-        
+        int minutes = Mathf.FloorToInt(timeLeft / 60);
+        int seconds = Mathf.FloorToInt(timeLeft % 60);
+        countdownText.text = $"{minutes:00}:{seconds:00}";
+    }
+
+    [PunRPC]
+    private void ShowWinnerPanel(string winnerMessage)
+    {
+        if (winnerPanel != null) winnerPanel.SetActive(true);
+        if (winnerText != null) winnerText.text = $"Winner: {winnerMessage}";
     }
 }

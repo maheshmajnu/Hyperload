@@ -118,10 +118,28 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            ActivateMyPanel(connectingPanel.name);
+            if (photonView != null)
+            {
+                photonView.RPC("ShowConnectingPanelForAll", RpcTarget.All);
+            }
+            else
+            {
+                Debug.Log("PhotonView missing on PhotonManager! Add it to this GameObject.");
+                ActivateMyPanel(connectingPanel.name);
+            }
+
             PhotonNetwork.LoadLevel("Game");
         }
     }
+
+
+    [PunRPC]
+    public void ShowConnectingPanelForAll()
+    {
+        ActivateMyPanel(connectingPanel.name);
+    }
+
+
     #endregion
 
     #region PHOTON_CALLBACKS

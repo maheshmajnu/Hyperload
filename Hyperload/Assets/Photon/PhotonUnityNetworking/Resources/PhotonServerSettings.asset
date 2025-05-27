@@ -49,6 +49,9 @@ MonoBehaviour:
   - RPC_UpdateAliveList
   - ShowWinner
   - RPC_ActivateRagdoll
+  - ShowConnectingPanelForAll
+  - ShowWinnerPanel
+  - UpdateCountdownUI
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

@@ -16,14 +16,14 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     public Image Health;
     public Image WorldHealthBG;
     public Image world_Health;
-    public TMP_Text playerLivesText;
+    
 
     private void Start()
     {
         currentHealth = maxHealth;
         SetupUI();
         UpdateUI();
-        UpdateLivesUI();
+        
     }
 
     private void SetupUI()
@@ -44,14 +44,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
             world_Health.fillAmount = fill;
     }
 
-    private void UpdateLivesUI()
-    {
-        if (photonView.IsMine && playerLivesText != null)
-        {
-            int lives = GameManager.Instance.playerLives[PhotonNetwork.LocalPlayer];
-            playerLivesText.text = $"{lives}";
-        }
-    }
+    
 
     [PunRPC]
     public void TakeDamage(float dmg)
@@ -88,9 +81,9 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         RagdollManager rag = GetComponent<RagdollManager>();
         if (rag) rag.TriggerRagdoll();
 
-        UpdateLivesUI();
+        
 
-        StartCoroutine(DestroyPlayerAfterDelay(2f));
+        StartCoroutine(DestroyPlayerAfterDelay(1f));
     }
 
     private IEnumerator DestroyPlayerAfterDelay(float delay)
@@ -99,7 +92,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
 
         if (photonView.IsMine)
         {
-            GameManager.Instance.HandlePlayerDeath(photonView.transform.root.gameObject);
+            GameManager.Instance.HandleRespawn();
             PhotonNetwork.Destroy(photonView.transform.root.gameObject);
         }
     }
