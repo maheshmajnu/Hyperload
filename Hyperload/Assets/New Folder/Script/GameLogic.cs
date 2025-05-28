@@ -3,47 +3,49 @@ using UnityEngine;
 
 public class GameLogic : MonoBehaviour
 {
-    public Transform groundCheckPoint; // empty GameObject at player's feet
+    public Transform groundCheckPoint;
     public float checkRadius = 0.3f;
-    public LayerMask layerMaskToCheck; // combine all relevant layers here in Inspector
+    public LayerMask layerMaskToCheck;
 
     public string StandOn = "";
 
+    private float groundTimer = 0f;
+    private float damageInterval = 5f;
+
     private PlayerHealth playerHealth;
 
-    private void Start()
+    void Start()
     {
         playerHealth = GetComponent<PlayerHealth>();
-        StartCoroutine(CheckAndDamageRoutine());
     }
 
-    private IEnumerator CheckAndDamageRoutine()
+    void Update()
     {
-        while (true)
+        Collider[] hits = Physics.OverlapSphere(groundCheckPoint.position, checkRadius, layerMaskToCheck);
+
+        if (hits.Length > 0)
         {
-            yield return new WaitForSeconds(5f);
+            StandOn = LayerMask.LayerToName(hits[0].gameObject.layer);
 
-            Collider[] hits = Physics.OverlapSphere(groundCheckPoint.position, checkRadius, layerMaskToCheck);
-
-            if (hits.Length > 0)
+            if (StandOn == "Ground" || StandOn == "Default")
             {
-                StandOn = LayerMask.LayerToName(hits[0].gameObject.layer);
+                groundTimer += Time.deltaTime;
 
-                if (StandOn == "Ground" || StandOn == "Default")
+                if (groundTimer >= damageInterval)
                 {
                     playerHealth.TakeDamage(25f);
-                    
-                }
-                else
-                {
-                    Debug.Log("Standing on: " + StandOn + " - Safe Zone");
+                    groundTimer = 0f; // reset timer after applying damage
                 }
             }
             else
             {
-                StandOn = "None";
-                Debug.Log("Not standing on any recognized layer.");
+                groundTimer = 0f; // reset timer if on safe layer
             }
+        }
+        else
+        {
+            StandOn = "None";
+            groundTimer = 0f; // reset if standing on nothing
         }
     }
 

@@ -31,7 +31,7 @@ public class WeaponManager : MonoBehaviour
 
     public float enemyKickBackForce = 100;
 
-
+    private GameLogic gameLogic;
 
 
     // Start is called before the first frame update
@@ -48,6 +48,7 @@ public class WeaponManager : MonoBehaviour
         muzzleFlashLight.intensity = 0;
         muzzleFlashParticles = GetComponentInChildren<ParticleSystem>();
         fireRateTimer = fireRate;
+        gameLogic = GetComponentInParent<GameLogic>();
     }
 
     // Update is called once per frame

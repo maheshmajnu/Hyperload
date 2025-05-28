@@ -14,6 +14,7 @@ public class RagdollManager : MonoBehaviourPunCallbacks
     private AimStateManager aimStateManager;
     private ActionStateManager actionStateManager;
     private WeaponManager weaponManager;
+    private GameLogic gameLogic;
     // Start is called before the first frame update
     void Start()
     {
@@ -21,6 +22,7 @@ public class RagdollManager : MonoBehaviourPunCallbacks
         aimStateManager = GetComponent<AimStateManager>();
         actionStateManager = GetComponent<ActionStateManager>();
         weaponManager = GetComponentInChildren<WeaponManager>();
+        gameLogic = GetComponentInChildren<GameLogic>();
 
         rbs = GetComponentsInChildren<Rigidbody>();
         foreach (Rigidbody rb in rbs) rb.isKinematic = true;
@@ -44,6 +46,7 @@ public class RagdollManager : MonoBehaviourPunCallbacks
         if (aimStateManager) aimStateManager.enabled = false;
         if (actionStateManager) actionStateManager.enabled = false;
         if (weaponManager) weaponManager.enabled = false;
+        if (gameLogic) gameLogic.enabled = false;
 
         foreach (Rigidbody rb in rbs)
             rb.isKinematic = false;
