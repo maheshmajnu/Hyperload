@@ -18,6 +18,8 @@ public class GameManager : MonoBehaviourPunCallbacks
     public TMP_Text winnerText;
     public TMP_Text countdownText;
     public TMP_Text spawncountdownText;
+    public GameObject PlayersPanel; // reference to the panel holding all player rows
+    public GameObject playerContentPrefab; // reference to the prefab with TMP fields
 
     private float countdownTime;
 
@@ -28,6 +30,9 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private void Start()
     {
+        // Clear old stats from previous game session
+        PlayerStatsManager.Clear();
+
         if (winnerPanel) winnerPanel.SetActive(false);
         countdownTime = Countdown;
 
@@ -106,10 +111,37 @@ public class GameManager : MonoBehaviourPunCallbacks
         countdownText.text = $"{minutes:00}:{seconds:00}";
     }
 
+
     [PunRPC]
     private void ShowWinnerPanel(string winnerMessage)
     {
-        if (winnerPanel != null) winnerPanel.SetActive(true);
-        if (winnerText != null) winnerText.text = $"Winner: {winnerMessage}";
+        winnerPanel.SetActive(true);
+        winnerText.text = $"Winner: {winnerMessage}";
+
+        //Clear existing player rows
+        foreach (Transform child in PlayersPanel.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // Spawn player stat rows
+        foreach (var kvp in PlayerStatsManager.allStats)
+        {
+            int actorNumber = kvp.Key;
+            var stats = kvp.Value;
+
+            Player player = PhotonNetwork.CurrentRoom.GetPlayer(actorNumber);
+            if (player != null)
+            {
+
+                GameObject row = Instantiate(playerContentPrefab, PlayersPanel.transform);
+                row.transform.GetChild(0).GetComponent<TMP_Text>().text = player.NickName;
+                row.transform.GetChild(1).GetComponent<TMP_Text>().text = stats.kills.ToString();
+                row.transform.GetChild(2).GetComponent<TMP_Text>().text = stats.damageDone.ToString();
+                row.transform.GetChild(3).GetComponent<TMP_Text>().text = stats.deaths.ToString();
+            }
+        }
     }
+
+
 }

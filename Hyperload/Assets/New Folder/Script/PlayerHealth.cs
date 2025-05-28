@@ -81,7 +81,9 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         RagdollManager rag = GetComponent<RagdollManager>();
         if (rag) rag.TriggerRagdoll();
 
-        
+        var stats = PlayerStatsManager.Get(photonView.OwnerActorNr);
+        stats.deaths++;
+
 
         StartCoroutine(DestroyPlayerAfterDelay(1f));
     }
@@ -95,5 +97,10 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
             GameManager.Instance.HandleRespawn();
             PhotonNetwork.Destroy(photonView.transform.root.gameObject);
         }
+    }
+
+    public float GetCurrentHealth()
+    {
+        return currentHealth;
     }
 }

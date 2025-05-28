@@ -18,33 +18,80 @@ public class Bullet : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("Bullet hit: " + collision.gameObject.name);
-
         ContactPoint contact = collision.contacts[0];
-
-        // Try to find PlayerHealth and PhotonView on parent
         PlayerHealth playerHealth = collision.gameObject.GetComponentInParent<PlayerHealth>();
         PhotonView targetView = collision.gameObject.GetComponentInParent<PhotonView>();
 
         if (playerHealth != null && targetView != null && !targetView.IsMine)
         {
-            // Calculate damage based on hit tag
-            float finalDamage = GetDamageBasedOnTag(collision.collider.tag);
+            GameLogic shooterLogic = weapon.GetComponentInParent<GameLogic>();
+            GameLogic targetLogic = targetView.GetComponentInParent<GameLogic>();
 
-            // Send RPC to the correct player only
-            targetView.RPC("TakeDamage", targetView.Owner, finalDamage);
+            if (shooterLogic == null || targetLogic == null)
+            {
+                Destroy(gameObject);
+                return;
+            }
 
-            // Spawn player hit effect (e.g., blood)
-            SpawnPlayerHitEffect(contact.point, contact.normal);
+            string shooterLayer = shooterLogic.StandOn;
+            string targetLayer = targetLogic.StandOn;
+
+            if (CanDamage(shooterLayer, targetLayer))
+            {
+                float finalDamage = GetDamageBasedOnTag(collision.collider.tag);
+                // Get shooter stats
+                int shooterID = weapon.GetComponentInParent<PhotonView>().OwnerActorNr;
+                var shooterStats = PlayerStatsManager.Get(shooterID);
+                shooterStats.damageDone += (int)finalDamage;
+
+                // Get target health before damage
+                float targetCurrentHealth = playerHealth.GetCurrentHealth();
+
+                if (finalDamage >= targetCurrentHealth)
+                {
+                    shooterStats.kills++;
+                }
+
+                // Apply damage via RPC
+                targetView.RPC("TakeDamage", targetView.Owner, finalDamage);
+
+                SpawnPlayerHitEffect(contact.point, contact.normal);
+            }
+            else
+            {
+                Debug.Log(" Damage blocked due to layer mismatch.");
+            }
         }
         else
         {
-            // Hit environment or non-player
             SpawnHitEffect(contact.point, contact.normal);
         }
 
-        Destroy(this.gameObject); // Destroy bullet
+        Destroy(this.gameObject);
     }
+
+    private bool CanDamage(string shooter, string target)
+    {
+        if ((shooter == "Ground" || shooter == "Default") && (target == "Ground" || target == "Default"))
+            return true;
+
+        if ((shooter == "Ground" || shooter == "Default") && IsColored(target))
+            return false;
+
+        if (IsColored(shooter) && (target == "Ground" || target == "Default"))
+            return true;
+
+        if (IsColored(shooter) && IsColored(target))
+            return shooter == target;
+
+        return false;
+    }
+
+    private bool IsColored(string layer)
+    {
+        return layer == "Red" || layer == "Green" || layer == "Blue" || layer == "Yellow";
+    }
+
 
     private void SpawnHitEffect(Vector3 position, Vector3 normal)
     {
