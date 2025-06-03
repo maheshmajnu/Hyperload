@@ -26,7 +26,11 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _Force_field_tex:
-        m_Texture: {fileID: 2800000, guid: 38963f557c03d114dbebed3800e7aac9, type: 3}
+        m_Texture: {fileID: 2800000, guid: 9b78a80dfc0a76045a5a7464d7151043, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture2DAsset_250d7758b01f42b9a1201f1098b491cf_Out_0_Texture2D:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -44,13 +48,16 @@ Material:
     m_Ints: []
     m_Floats:
     - _Edge_power: 2.95
-    - _Line_scale: 46.41
-    - _Line_speed: 9.7
-    - _Lines_strength: 6.78
+    - _Fade_Transition: 1.88
+    - _Fade_range: 1.02
+    - _Line_scale: 3
+    - _Line_speed: 3
+    - _Lines_strength: 21
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
     - _Edge_color: {r: 0, g: 1.9369212, b: 2, a: 0.99607843}
+    - _Line_tiling: {r: 3.26, g: 1.94, b: 0, a: 0}
     - _Main_color: {r: 0, g: 0.24803925, b: 0.25, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &4746001801269565176
