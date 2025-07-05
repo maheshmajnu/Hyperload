@@ -54,7 +54,11 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         currentHealth -= dmg;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
         UpdateUI();
-        photonView.RPC("SyncWorldHealth", RpcTarget.Others, currentHealth / maxHealth);
+        // Ensure we’re connected and in room before sending RPC
+        if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom)
+        {
+            photonView.RPC("SyncWorldHealth", RpcTarget.Others, currentHealth / maxHealth);
+        }
 
         if (currentHealth <= 0)
         {

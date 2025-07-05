@@ -1,4 +1,5 @@
 using System.Collections;
+using Photon.Pun;
 using UnityEngine;
 
 public class GameLogic : MonoBehaviour
@@ -33,7 +34,10 @@ public class GameLogic : MonoBehaviour
 
                 if (groundTimer >= damageInterval)
                 {
-                    playerHealth.TakeDamage(25f);
+                    if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom)
+                    {
+                        playerHealth.TakeDamage(25f);
+                    }
                     groundTimer = 0f; // reset timer after applying damage
                 }
             }
